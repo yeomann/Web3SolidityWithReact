@@ -30,5 +30,14 @@
   padding: 8px;
   border: 0;
   border-radius: 5px;
-  
+}
+
+.connected-acc {
+  font-size: 10px;
+}
+
+.connected-acc code {
+  background: red;
+  color: white;
+  padding: 1px;
 }

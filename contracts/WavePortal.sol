@@ -24,7 +24,7 @@ contract WavePortal {
   function AddWave() public {
     totalWaves +=1;
     console.log("%s has waved!", msg.sender);
-    waversArr.push(Wavers(msg.sender, totalWaves));
+    waversArr.push(Wavers(msg.sender, 1));
   }
 
   function getTotalWavesCount() public view returns(uint256) {
