@@ -19,7 +19,8 @@ const App = () => {
   // goerli: 0x1115e3A37e1b292b8E089ac5A50a8879e280FE1D - v1
   // gerli: 0x14749e3c5c1AbF890A79f060186942505257d84B - v2
   // goerli: 0xE9Abbe7F0618157888413B116130f2111118bBa4  - v3
-  const contractAddress = "0xE9Abbe7F0618157888413B116130f2111118bBa4";
+  // goerli: 0xCb962c97224148Bf3583C46bCC53345D29721F82 - v4
+  const contractAddress = "0xCb962c97224148Bf3583C46bCC53345D29721F82";
   /**
    * Create a variable here that references the abi content!
    */

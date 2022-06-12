@@ -37,8 +37,10 @@ contract WavePortal {
   Wavers[] waversArr;
   address owner;
   uint256 totalWaves;
+  // give user 0.0001 ETH i.e $0.31 who waves at us
+  uint256 prizeMoneyForWaver = 0.0001 ether;
 
-  constructor() {
+  constructor() payable {
     owner = msg.sender;
     console.log("This is a smart contract, Contract Owner = %s", owner);
   }
@@ -55,6 +57,15 @@ contract WavePortal {
     waversArr.push(Wavers(msg.sender, 1));
     // emit event that we have New Wave
     emit NewWave(msg.sender, block.timestamp, message);
+    // check if contract have money to award waver
+    //  If it's not true, it will quit the function and cancel the transaction
+    require(prizeMoneyForWaver <= address(this).balance, "You are trying to withdraw money more than what we have in Contract!");
+    // if contract have money then award him prize money 
+    (bool success, ) = (msg.sender).call{
+      value: prizeMoneyForWaver
+    }("");
+    // if money is send proceed with transaction otherwise force error with returning leftover gas money
+    require(success, "Failed to withdraw money from contract.");
   }
   /*
   * total waves count.
