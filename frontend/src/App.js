@@ -13,8 +13,9 @@ const App = () => {
    * Create a variable here that holds the contract address after you deploy!
    */
   // rinkeby: 0x1307e61ECFCEA1872ab1B9BccB6D76e84119484F
-  // goerli: 0x1115e3A37e1b292b8E089ac5A50a8879e280FE1D
-  const contractAddress = "0x1115e3A37e1b292b8E089ac5A50a8879e280FE1D";
+  // goerli: 0x1115e3A37e1b292b8E089ac5A50a8879e280FE1D - v1
+  // gerli: 0x14749e3c5c1AbF890A79f060186942505257d84B - v2
+  const contractAddress = "0x14749e3c5c1AbF890A79f060186942505257d84B";
   /**
    * Create a variable here that references the abi content!
    */

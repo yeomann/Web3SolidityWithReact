@@ -1,7 +1,16 @@
 # Basic Sample Hardhat Project
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+Hardhat project with Wave Portal contract.
 
+### Run
+
+`npx hardhat run scripts/run.js`
+
+### Deploy
+
+`npx hardhat run scripts/deploy.js --network goerli`
+
+## Some commands
 Try running some of the following tasks:
 
 ```shell
