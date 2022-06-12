@@ -20,7 +20,8 @@ const App = () => {
   // gerli: 0x14749e3c5c1AbF890A79f060186942505257d84B - v2
   // goerli: 0xE9Abbe7F0618157888413B116130f2111118bBa4  - v3
   // goerli: 0xCb962c97224148Bf3583C46bCC53345D29721F82 - v4
-  const contractAddress = "0xCb962c97224148Bf3583C46bCC53345D29721F82";
+  // goerli: 0xc1105E46167247B07CC6C36986A3c40aD5a2CfC5 - v5
+  const contractAddress = "0xc1105E46167247B07CC6C36986A3c40aD5a2CfC5";
   /**
    * Create a variable here that references the abi content!
    */
@@ -77,6 +78,14 @@ const App = () => {
     }
   };
 
+  const doesEtherumExists = () => {
+    const { ethereum } = window;
+    if (!ethereum) {
+      alert("Ethereum object doesn't exist!");
+      return;
+    }
+    return true;
+  }
   const wave = async () => {
     console.log("wave called");
     console.log("contractABI=", contractABI);
@@ -85,14 +94,10 @@ const App = () => {
       return;
     }
     try {
-      const { ethereum } = window;
-      if (!ethereum) {
-        console.log("Ethereum object doesn't exist!");
-        return;
-      }
+      if(!doesEtherumExists()) return;
 
       // A "Provider" is what we use to actually talk to Ethereum nodes.
-      const provider = new ethers.providers.Web3Provider(ethereum);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       /*
        * You're using contractABI here
@@ -109,7 +114,9 @@ const App = () => {
       /*
        * Execute the actual wave from your smart contract
        */
-      const waveTxn = await wavePortalContract.AddWave(message, { gasLimit: 300000 });
+      const waveTxn = await wavePortalContract.AddWave(message, {
+        gasLimit: 300000,
+      });
       console.log("Mining...", waveTxn.hash);
       setIsMining(true);
 
@@ -121,9 +128,11 @@ const App = () => {
       count = await wavePortalContract.getTotalWavesCount();
       console.log("Retrieved total wave count...", count.toNumber());
       // referesh UI
-      await getAllWaves();
+      // await getAllWaves();
+      // commenting, This works fine but its time, we use samert contract event magic :)
     } catch (error) {
       console.log(error);
+      setIsMining(false);
     }
   };
 
@@ -132,12 +141,8 @@ const App = () => {
    */
   const getAllWaves = useCallback(async () => {
     try {
-      const { ethereum } = window;
-      if (!ethereum) {
-        console.log("Ethereum object doesn't exist!");
-        return;
-      }
-      const provider = new ethers.providers.Web3Provider(ethereum);
+      if(!doesEtherumExists()) return;
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const wavePortalContract = new ethers.Contract(
         contractAddress,
@@ -174,20 +179,30 @@ const App = () => {
 
   const testDeploymentCode = async () => {
     try {
-      const { ethereum } = window;
-      if (!ethereum) {
-        console.log("Ethereum object doesn't exist!");
-        return;
-      }
-      const provider = new ethers.providers.Web3Provider(ethereum);
+      if(!doesEtherumExists()) return;
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
 
       const testDeployment = await provider.getCode(contractAddress);
       console.log("testDeployment=", testDeployment);
       alert("Deployed Successfully=" + testDeployment);
     } catch (ee) {
       console.log(ee);
-      alert("ERROR IN Deployment" + ee);
+      alert("There was error in Deployment/Deployment not finished yet!..." + ee);
     }
+  };
+
+  // upon new event mutate and save new wave data in local state
+  const mutateLocalStateOnNewWave = (fromAddress, timestamp, message) => {
+    console.log("NewWave event", fromAddress, timestamp, message);
+    // mutate local state
+    setAllWaves((prevState) => [
+      ...prevState,
+      {
+        address: fromAddress,
+        timestamp: new Date(timestamp * 1000),
+        message: message,
+      },
+    ]);
   };
 
   /*
@@ -197,17 +212,46 @@ const App = () => {
     checkIfWalletIsConnected();
   }, []);
 
+  /*
+   * fetch smart contract to show pervious wave messages
+   */
   useEffect(() => {
     if (currentAccount) {
       getAllWaves();
     }
   }, [currentAccount, getAllWaves]);
 
+  // on change account, show chain id of connected network
   useEffect(() => {
     window.ethereum.on("chainChanged", (chainId) => {
       console.log(parseInt(chainId, 16));
     });
   }, []);
+
+  /**
+   * Listen in for emitter events!
+   */
+  useEffect(() => {
+    // get smart contract
+    let wavePortalContract;
+    if(!doesEtherumExists()) return;
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+
+    wavePortalContract = new ethers.Contract(
+      contractAddress,
+      contractABI,
+      signer
+    );
+    wavePortalContract.on("NewWave", mutateLocalStateOnNewWave);
+
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off("NewWave", mutateLocalStateOnNewWave);
+      }
+    };
+  }, [contractABI]);
 
   return (
     <div className="mainContainer">
