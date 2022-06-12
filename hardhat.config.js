@@ -3,7 +3,7 @@ require("@nomiclabs/hardhat-waffle");
 require("dotenv").config();
 // Go to https://www.alchemyapi.io, sign up, create
 // a new App in its dashboard, and replace "KEY" with its key
-const ALCHEMY_API_KEY = process.env.STAGING_GOERLI_ALCHEMY_KEY;
+const ALCHEMY_API_KEY = process.env.STAGING_ALCHEMY_KEY;
 const PROD_ALCHEMY_KEY = process.env.PROD_ALCHEMY_KEY;
 // Replace this private key with your Goerli account private key
 // To export your private key from Metamask, open Metamask and
@@ -34,6 +34,10 @@ module.exports = {
       url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
       accounts: [PRIVATE_KEY]
     },
+    rinkeby: {
+      url: `https://eth-rinkeby.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+      accounts: [PRIVATE_KEY]
+    }
     // mainnet: {
     //   chainId: 1,
     //   url: PROD_ALCHEMY_KEY,

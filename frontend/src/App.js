@@ -8,9 +8,12 @@ const App = () => {
    * Just a state variable we use to store our user's public wallet.
    */
   const [currentAccount, setCurrentAccount] = useState("");
+  const [isMining, setIsMining] = useState(false);
   /**
    * Create a variable here that holds the contract address after you deploy!
    */
+  // rinkeby: 0x1307e61ECFCEA1872ab1B9BccB6D76e84119484F
+  // goerli: 0x1115e3A37e1b292b8E089ac5A50a8879e280FE1D
   const contractAddress = "0x1115e3A37e1b292b8E089ac5A50a8879e280FE1D";
   /**
    * Create a variable here that references the abi content!
@@ -76,6 +79,7 @@ const App = () => {
       if (!ethereum) {
         console.log("Ethereum object doesn't exist!");
       }
+
       // A "Provider" is what we use to actually talk to Ethereum nodes.
       const provider = new ethers.providers.Web3Provider(ethereum);
       const signer = provider.getSigner();
@@ -91,6 +95,19 @@ const App = () => {
 
       let count = await wavePortalContract.getTotalWavesCount();
       console.log("Retrieved total wave count...", count.toNumber());
+      /*
+       * Execute the actual wave from your smart contract
+       */
+      const waveTxn = await wavePortalContract.AddWave();
+      console.log("Mining...", waveTxn.hash);
+      setIsMining(true);
+
+      await waveTxn.wait();
+      console.log("Mined -- ", waveTxn.hash);
+      setIsMining(false);
+      
+      count = await wavePortalContract.getTotalWavesCount();
+      console.log("Retrieved total wave count...", count.toNumber());
     } catch (error) {
       console.log(error);
     }
@@ -101,6 +118,12 @@ const App = () => {
    */
   useEffect(() => {
     checkIfWalletIsConnected();
+  }, []);
+
+  useEffect(() => {
+    window.ethereum.on("chainChanged", (chainId) => {
+      console.log(parseInt(chainId, 16));
+    });
   }, []);
 
   return (
@@ -117,8 +140,13 @@ const App = () => {
           Hey, Connect your Ethereum wallet and wave at me!
         </div>
 
-        <button className="waveButton" onClick={wave}>
-          Wave at Me
+        <button 
+          className={`waveButton ld-ext-right ${isMining ? 'running' : ''}`}
+          onClick={wave} 
+          disabled={isMining}
+        >
+          {isMining ? "Mining wave at Eth Network..." : "Wave at Me"}
+          <div className="ld ld-ring ld-spin-fast"></div>
         </button>
 
         {/*
@@ -130,7 +158,7 @@ const App = () => {
             <code>{currentAccount}</code>
           </p>
         ) : (
-          <button className="waveButton" onClick={connectWallet}>
+          <button className="walletButton" onClick={connectWallet}>
             Connect Wallet
           </button>
         )}
