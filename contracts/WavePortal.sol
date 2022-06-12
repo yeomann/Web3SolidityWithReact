@@ -41,7 +41,12 @@ contract WavePortal {
   uint256 totalWaves;
   // give user 0.0001 ETH i.e $0.31 who waves at us
   uint256 prizeMoneyForWaver = 0.0001 ether;
-
+  /*
+  * This is an address => uint mapping, meaning I can associate an address with a number!
+  * In this case, I'll be storing the address with the last time the user waved at us.
+  */
+  mapping(address => uint256) public lastWavedAt;
+  
   constructor() payable {
     owner = msg.sender;
     console.log("This is a smart contract, Contract Owner = %s", owner);
@@ -54,6 +59,22 @@ contract WavePortal {
   * Make wave, Emit event that wave happened and save in waves array
   */
   function AddWave(string memory message) public {
+    /*
+    * We need to make sure the current timestamp is at least 15-minutes bigger than the last timestamp we stored
+    */
+    //  now = block.timestamp = 20
+    // last called time = lastWavedAt[msg.sender] = 0
+    // if i add 15 mints in last called time, 0 + 15 
+    // then it should be less than "now" time
+    require(
+      lastWavedAt[msg.sender] + 15 minutes < block.timestamp,
+      "Oops, you are in cooldown period, Wait 15 minutes.."
+    );
+    /*
+      * Update the current timestamp we have for the user
+      */
+    lastWavedAt[msg.sender] = block.timestamp;
+    
     totalWaves +=1;
     console.log("%s has waved!", msg.sender);
     /*
