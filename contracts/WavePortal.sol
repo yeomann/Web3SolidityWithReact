@@ -21,6 +21,8 @@ struct BlockInfo {
 }
 
 contract WavePortal {
+  // help generate a random number
+  uint256 private seed;
   // event
   event NewWave(address indexed from, uint256 timestamp, string message);
   // save wave message by address and time
@@ -43,6 +45,10 @@ contract WavePortal {
   constructor() payable {
     owner = msg.sender;
     console.log("This is a smart contract, Contract Owner = %s", owner);
+    /*
+    * Set the initial seed
+    */
+    seed = (block.timestamp + block.difficulty) % 100;
   }
   /*
   * Make wave, Emit event that wave happened and save in waves array
@@ -50,22 +56,30 @@ contract WavePortal {
   function AddWave(string memory message) public {
     totalWaves +=1;
     console.log("%s has waved!", msg.sender);
-
+    /*
+      * Generate a new seed for the next user that sends a wave
+      */
+    seed = (block.difficulty + block.timestamp + seed) % 100;
+    console.log("Random # generated: %d", seed);
     // store the wave data in the array
     // waves.push(Wave(msg.sender, message, BlockInfo(block.coinbase, block.difficulty, block.gaslimit, block.number, block.timestamp)));
     waves.push(Wave(msg.sender, message, block.timestamp));
     waversArr.push(Wavers(msg.sender, 1));
+    // Give a 50% chance that the user wins the prize
+    if(seed <= 50) {
+      console.log("%s won!", msg.sender);
+      // check if contract have money to award waver
+      //  If it's not true, it will quit the function and cancel the transaction
+      require(prizeMoneyForWaver <= address(this).balance, "You are trying to withdraw money more than what we have in Contract!");
+      // if contract have money then award him prize money 
+      (bool success, ) = (msg.sender).call{
+        value: prizeMoneyForWaver
+      }("");
+      // if money is send proceed with transaction otherwise force error with returning leftover gas money
+      require(success, "Failed to withdraw money from contract.");
+    }
     // emit event that we have New Wave
     emit NewWave(msg.sender, block.timestamp, message);
-    // check if contract have money to award waver
-    //  If it's not true, it will quit the function and cancel the transaction
-    require(prizeMoneyForWaver <= address(this).balance, "You are trying to withdraw money more than what we have in Contract!");
-    // if contract have money then award him prize money 
-    (bool success, ) = (msg.sender).call{
-      value: prizeMoneyForWaver
-    }("");
-    // if money is send proceed with transaction otherwise force error with returning leftover gas money
-    require(success, "Failed to withdraw money from contract.");
   }
   /*
   * total waves count.

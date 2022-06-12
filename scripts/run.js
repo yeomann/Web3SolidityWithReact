@@ -96,6 +96,14 @@ const main = async () => {
   let allWaves = await waveContract.getAllWaves();
   console.log(allWaves);
   console.log("**********END WAVE TESTING**********");
+  /*
+   * Get Contract balance to see what happened!
+   */
+  contractBalance = await hre.ethers.provider.getBalance(waveContract.address);
+  console.log(
+    "FINALLY! Contract balance:",
+    hre.ethers.utils.formatEther(contractBalance)
+  );
 };
 
 const runMain = async () => {
