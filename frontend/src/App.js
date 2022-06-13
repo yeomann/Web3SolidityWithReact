@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { ethers } from "ethers";
 import WavePortalAbi from "./utils/WavePortal.json";
+import { transactionFailedReason } from "./utils/helper";
 import "./App.css";
+
+const getRevertReason = require("eth-revert-reason");
 
 const App = () => {
   /*
@@ -85,7 +88,7 @@ const App = () => {
       return;
     }
     return true;
-  }
+  };
   const wave = async () => {
     console.log("wave called");
     console.log("contractABI=", contractABI);
@@ -94,7 +97,7 @@ const App = () => {
       return;
     }
     try {
-      if(!doesEtherumExists()) return;
+      if (!doesEtherumExists()) return;
 
       // A "Provider" is what we use to actually talk to Ethereum nodes.
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -131,7 +134,14 @@ const App = () => {
       // await getAllWaves();
       // commenting, This works fine but its time, we use samert contract event magic :)
     } catch (error) {
-      console.log(error);
+      console.log(error, error.transaction.hash);
+      // const provider = new ethers.providers.Web3Provider(window.ethereum);
+      // await transactionFailedReason(error.transaction.hash, provider);
+
+      // const provider =  new ethers.providers.AlchemyProvider(parseInt(window.ethereum.networkVersion, 10)) // NOTE: getAlchemyProvider is not exposed in this package
+      // let tx = await provider.getTransaction(hash);
+      // console.log(await getRevertReason(error.transaction.hash, network, tx.blockNumber, provider)) // 'BA: Insufficient gas (ETH) for refund'
+
       setIsMining(false);
     }
   };
@@ -141,7 +151,7 @@ const App = () => {
    */
   const getAllWaves = useCallback(async () => {
     try {
-      if(!doesEtherumExists()) return;
+      if (!doesEtherumExists()) return;
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const wavePortalContract = new ethers.Contract(
@@ -179,7 +189,7 @@ const App = () => {
 
   const testDeploymentCode = async () => {
     try {
-      if(!doesEtherumExists()) return;
+      if (!doesEtherumExists()) return;
       const provider = new ethers.providers.Web3Provider(window.ethereum);
 
       const testDeployment = await provider.getCode(contractAddress);
@@ -187,7 +197,9 @@ const App = () => {
       alert("Deployed Successfully=" + testDeployment);
     } catch (ee) {
       console.log(ee);
-      alert("There was error in Deployment/Deployment not finished yet!..." + ee);
+      alert(
+        "There was error in Deployment/Deployment not finished yet!..." + ee
+      );
     }
   };
 
@@ -234,7 +246,7 @@ const App = () => {
   useEffect(() => {
     // get smart contract
     let wavePortalContract;
-    if(!doesEtherumExists()) return;
+    if (!doesEtherumExists()) return;
 
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
@@ -285,7 +297,75 @@ const App = () => {
           {isMining ? "Mining wave at Eth Network..." : "Wave at Me"}
           <div className="ld ld-ring ld-spin-fast"></div>
         </button>
+        <button
+          onClick={async () => {
+            console.log("1");
+            let TX_HASH =
+              "0x7505985878a22d07d9f38381450378ee1ef9f7644fd383286c720653a16ff04b";
+            let network = "goerli";
+            let _blockNumber = 7048399;
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
 
+            await transactionFailedReason(TX_HASH, provider);
+            return;
+
+            function getAlchemyProvider(network) {
+              const rpcUrl = `https://eth-${network}.alchemyapi.io/v2/HEIuxUKAjO5TWLA1MHZN4vUG7fFbqcn5`;
+              return new ethers.providers.JsonRpcProvider(rpcUrl);
+            }
+            try {
+              let TX_HASH =
+                "0x7505985878a22d07d9f38381450378ee1ef9f7644fd383286c720653a16ff04b";
+              let network = "goerli";
+              let _blockNumber = 7048399;
+              const provider = new ethers.providers.Web3Provider(
+                window.ethereum
+              );
+
+              await transactionFailedReason(TX_HASH, provider);
+
+              // const provider = ethers.getDefaultProvider(network)
+              // const tx = await provider.getTransaction(TX_HASH)
+              // const code = await provider.call(tx)
+              // console.log("code=", code);
+
+              // const a = await provider.getTransaction(TX_HASH);
+              // console.log("a=", a);
+
+              // let code = await provider.call(a, a.blockNumber);
+              // console.log(code);
+
+              // const datta = code.data.replace('Reverted ','');
+              // let reason = ethers.utils.toUtf8String('0x' + datta.substr(138));
+              // console.log('revert reason:', reason);
+
+              // try {
+              //   let code = await provider.call(a, a.blockNumber);
+              //   console.log(code);
+
+              //   const datta = code.data.replace('Reverted ','');
+              //   let reason = ethers.utils.toUtf8String('0x' + datta.substr(138));
+              //   console.log('revert reason:', reason);
+
+              // } catch (err) {
+              //   // const code = err.data.replace('Reverted ','');
+              //   console.log({err});
+              //   // let reason = ethers.utils.toUtf8String('0x' + code.substr(138));
+              //   // console.log('revert reason:', reason);
+              // }
+
+              // const code = await getRevertReason(txHash, network);
+              // console.log("code=", code);
+              // const _provider = getAlchemyProvider(network);
+              // console.log(await getRevertReason(TX_HASH, network, _blockNumber, _provider))
+            } catch (err) {
+              console.log("%c catch err", "background:red;color:white");
+              console.log(err);
+            }
+          }}
+        >
+          Test fail reason
+        </button>
         {/*
          * If there is no currentAccount render this button or show connected account
          */}
